@@ -15614,6 +15614,59 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <li>describe consumer groups : <code>bin/kafka-consumer-groups.sh --describe --group &lt;group-id&gt; --bootstrap-server &lt;bootstrap-server&gt;</code></li>
 <li>check offsets : <code>bin/kafka-run-class.sh kafka.tools.GetOffsetShell --topic &lt;topic-name&gt; --group &lt;group-id&gt; --bootstrap-server &lt;bootstrap-server&gt;</code></li>
 </ol>
+<p>Apache Kafka APIs:</p>
+<ol>
+<li>Producer API : used to publish messages to Kafka topics</li>
+<li>Consumer API : used to subscribe to Kafka topics and process messages</li>
+<li>Streams API : used to process streams of data and produce output streams, effectively transforming input streams into output streams<ul>
+<li>highly scalable and fault-tolerant, can be used to build real-time applications, stateful and stateless processing, etc.</li>
+<li>event time processing, windowing, joins, aggregations, etc.</li>
+<li>does not take much configuration, can be run on a single machine or a cluster</li>
+<li>employs one record at a time processing, to achieve low latency and high throughput</li>
+</ul>
+</li>
+<li>Connector API : used to connect Kafka topics to external systems, e.g., databases, message queues, etc.</li>
+</ol>
+<p>Stream processing topologies:</p>
+<ul>
+<li>A stream is an unbounded, continuously updating data set, ordered, replayable, fault-tolerant sequence of immutable data records</li>
+<li>A stream processing application defines its computational logic through one or more processor topologies, a graph of stream processors connected by streams</li>
+<li>A stream processor is a node in the processor topology, represents a processing step to transform data in streams<ul>
+<li>receives one input record at a time from its upstream processors</li>
+<li>applies its operation to it</li>
+<li>may subsequently produce one or more output records to its downstream processors</li>
+</ul>
+</li>
+<li>Kafka stream processors:<ul>
+<li>Source Processor : does not have any upstream processors, produces an input stream to its topology from one or multiple Kafka topics</li>
+<li>Sink Processor : does not have downstream processors, sends any received records from its upstream processors to a specified Kafka topic</li>
+</ul>
+</li>
+<li>Processing in Kafka Streams:<ul>
+<li>High-level Kafka Streams DSL : provides ready to use methods with functional style<ul>
+<li>has already implemented methods ready to use</li>
+<li>composed of two main abstractions: KStream and KTable or GlobalKTable<ul>
+<li>KStream : abstraction of record stream, provides many functional ways to manipulate stream data<ul>
+<li>map, mapValue, flatMap, flatMapValues, filter, are some of the methods</li>
+</ul>
+</li>
+<li>KTable or GlobalKTable : abstraction of a changelog stream, every data record is considered an Insert or Update<ul>
+<li>existing row with the same key will be overwritten</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Low-level Processor API : provides flexibility to implement processing logic according to need<ul>
+<li>extends AbstractProcessor, overrides process method, called once for every key-value pair</li>
+<li>provides client to access stream data, perform business logic, send result as downstream data</li>
+<li>trade-off is lines of code needed for specific scenarios</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <h3 id="Apache-Zookeeper-%5BVid%5D">Apache Zookeeper <a href="https://youtu.be/gZj16chk0Ss">[Vid]</a><a class="anchor-link" href="#Apache-Zookeeper-%5BVid%5D">&#182;</a></h3><ul>
 <li><a href="https://zookeeper.apache.org/doc/r3.9.1/zookeeperOver.html">ZooKeeper overview</a></li>
 <li>distributed coordination service, used for building distributed systems, used with Hadoop, HBase, Kafka, etc</li>
@@ -15715,6 +15768,399 @@ body[data-format='mobile'] .jp-OutputArea-child .jp-OutputArea-output {
 <img alt="picture 12" src="https://cdn.jsdelivr.net/gh/sharatsachin/images-cdn@master/images/4318bba6aca69a8f6dce99565fb3d697ee78c24378ddc9c8ff3d8b1dba700aa4.png" width="700" style="display: block; margin-left: auto; margin-right: auto;">
 <p><a href="https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/data/stream-processing-stream-analytics">Link3</a></p>
 <img alt="picture 13" src="https://cdn.jsdelivr.net/gh/sharatsachin/images-cdn@master/images/cd7def52aa38a303f47ef8c8f15a484d61f92de42f90e3e4b8a83f7ce2049750.png" width="700" style="display: block; margin-left: auto; margin-right: auto;">
+
+</div>
+</div>
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="Stream-Processing-Framework-Features">Stream Processing Framework Features<a class="anchor-link" href="#Stream-Processing-Framework-Features">&#182;</a></h2><p>State Management</p>
+<ul>
+<li>where to maintain state in stream processing systems?<ul>
+<li>in-memory : for example, sum(sales) for last one hour<ul>
+<li>data will be flushed out once one hour window expires</li>
+<li>potential of losing all the data if the stream processor node fails</li>
+</ul>
+</li>
+<li>persistent storage : for example, needs to join data from two different streams and data being produced at different rate</li>
+</ul>
+</li>
+</ul>
+<p>Fault Tolerance</p>
+<ul>
+<li>point of failures in stream processing data flow<ul>
+<li>incoming stream data, network carrying data, stream processor, connection to output sink, output destination, streaming manager, application driver</li>
+</ul>
+</li>
+<li>in case of data loss, different approaches can be used<ul>
+<li>replication and coordination : replicate the state of computation on multiple nodes, in case of failures, streaming manager interacts with replicas<ul>
+<li>can predefine number of simultaneous failures, K-fault tolerant where k is number of simultaneous failures</li>
+</ul>
+</li>
+<li>state machine approach : streaming job is replicated on multiple nodes, replicas are coordinated by sending same input in same order to all<ul>
+<li>allows for quick failover, resulting into little disruption</li>
+</ul>
+</li>
+<li>rollback recovery approach : stream processor periodically packages the state of computation into checkpoint, copies checkpoint to different nodes<ul>
+<li>in case of failure, stream manager fetches the computation from last saved checkpoint and reschedules it</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Timing-Concepts">Timing Concepts<a class="anchor-link" href="#Timing-Concepts">&#182;</a></h3><ul>
+<li>Event Time vs Stream Time<ul>
+<li>event time is time at which the event occurs</li>
+<li>stream time is time at which event enters the streaming system</li>
+<li>stream time will lag a bit due to several reasons</li>
+<li>for example, if we are monitoring the traffic on the road and a person jumps the signal, then<ul>
+<li>event time is the time at which the person jumped the signal</li>
+<li>stream time is the time at which the event information reached to streaming platform for processing like snapping the fine on the user and then sending him the alert on the mobile</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Time Skew<ul>
+<li>stream time is often lagging behind the event time</li>
+<li>the difference between these two times is &quot;time skew&quot;</li>
+<li>variance can be significant sometimes due to various issues</li>
+<li>applications needs to take into consideration whether they depend on the event time or stream time</li>
+</ul>
+</li>
+</ul>
+<h3 id="Windowing">Windowing<a class="anchor-link" href="#Windowing">&#182;</a></h3><ul>
+<li>Windowing is a technique used in stream processing to divide the stream of data into finite segments</li>
+<li>policies:<ul>
+<li>trigger policy : rules for determining when the code should be executed</li>
+<li>eviction policy : rules for determining when the data should be evicted from the window</li>
+</ul>
+</li>
+<li>types:<ul>
+<li>sliding window : window slides over the data stream<ul>
+<li>window length specifies the eviction policy (time duration for which data is available for processing, eg. if 2 seconds, data older than 2 seconds will be evicted)</li>
+<li>sliding interval specifies the trigger policy (time duration after which code will be triggered eg. if 1 second, code will be executed every second)</li>
+</ul>
+</li>
+<li>tumbling window : window is fixed and data is processed in chunks<ul>
+<li>trigger and eviction policies are executed when window is full</li>
+<li>no time constraints for window to be filled</li>
+<li>types:<ul>
+<li>count based tumbling : trigger and eviction policy set to 2 seconds, when 2 events are accumulated in window, trigger will be fired, code will be executed, window will be drained</li>
+<li>temporal based tumbling : based on time, if the eviction and trigger policy set to 2 seconds, when 2 seconds are over, trigger will be fired, code will be executed, window will be drained</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Stream-Joins">Stream Joins<a class="anchor-link" href="#Stream-Joins">&#182;</a></h3><ul>
+<li>stream-stream join : event streams from two or more sources are joined in real time<ul>
+<li>sources can be same or different</li>
+<li>for example, location coordinates of mobile devices of users is received in real time and can be joined with the traffic updates available in real time around those locations to suggest an alternative route in case of congestion</li>
+<li>at least one stream must be bounded (have a window attached) to perform join<div class="highlight"><pre><span></span><span class="k">Select</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="w"> </span>
+<span class="k">From</span><span class="w"> </span><span class="n">S1</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">s1</span><span class="w"> </span><span class="k">join</span><span class="w"> </span><span class="n">S2</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">s2</span><span class="w"> </span>
+<span class="k">on</span><span class="w"> </span><span class="n">s1</span><span class="p">.</span><span class="n">id</span><span class="o">=</span><span class="n">s2</span><span class="p">.</span><span class="n">id</span><span class="w"> </span>
+<span class="k">insert</span><span class="w"> </span><span class="k">into</span><span class="w"> </span><span class="n">JoinedStream</span>
+</pre></div>
+</li>
+<li>one window join : one stream is bounded by a window, events retained in the window are matched against events coming in the second stream<ul>
+<li>only events in the second stream will trigger an output</li>
+</ul>
+</li>
+<li>two window join : a two-window query will retain events coming from both the streams in the window<ul>
+<li>a new event coming in will either trigger a match and an output</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>stream-table join : streaming event and data stored in persistent storage like database is joined together<ul>
+<li>usually information from the database is fetched to add more value to the streaming data</li>
+<li>for example, users location is tracked near a mall in real time along with identity of user and sourced as stream, profile data of user is fetched from database, his/her interests are observed, based on the interests and outlets located in the malls, discount coupons can be sent on the users devices</li>
+<li>lookup in database can be time consuming in case of too many records of users are available, local copy of users data can be loaded in stream processor</li>
+</ul>
+</li>
+</ul>
+<h3 id="Approaches-to-Stream-Processing">Approaches to Stream Processing<a class="anchor-link" href="#Approaches-to-Stream-Processing">&#182;</a></h3><p>Two approaches:</p>
+<ol>
+<li>Microbatching (Bulk Synchronous Processing)<ul>
+<li>gist of Bulk Synchronous Processing (BSP)<ul>
+<li>split distribution of asynchronous work</li>
+<li>each executor receives the chunk(s) of work and works separately until the second element comes in</li>
+<li>a particular resource is tasked with keeping track of progress of computation</li>
+<li>between these scheduled steps, all executors on the cluster are doing the same thing</li>
+</ul>
+</li>
+<li>synchronous barrier, coming in at fixed intervals<ul>
+<li>frequency at which further rounds of processing are scheduled id dictated by time period</li>
+<li>implemented at small, fixed intervals that better approximate the real time motion of data processing</li>
+<li>function-passing style – asynchronously pass safe functions to data</li>
+<li>functions are passed around the scheduling process that describe processing to be done on data</li>
+<li>data is already on various executors, delivered directly to resources</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>One-Record-at-a-Time Processing<ul>
+<li>works based on pipelining</li>
+<li>analyses the whole computation as described by user-specified functions and deploys it as a pipeline using the resources of the cluster</li>
+<li>flow the data through various resources, following prescribed pipeline</li>
+<li>each step of computation is materialized at some place in cluster at any given point</li>
+<li>Apache Filnk, Storm and IBM Streams follows this style</li>
+<li>latency<ul>
+<li>for microbatching system is batch interval + processing time</li>
+<li>for one-record-at-a-time system is only processing time as it react as it meets the event of interest</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>Bringing Microbatch and One-record-at-time Together</p>
+<ul>
+<li>marriage is implemented in systems like Flink and Naiad</li>
+<li>Spark Structured Streaming<ul>
+<li>backed up by microbatching but does not reveal the batch interval at API level</li>
+<li>allows for processing that is independent of fixed batch interval</li>
+<li>execution model mixes microbatching with a dynamic batch interval</li>
+<li>trigger the execution of next batch as early as possible</li>
+<li>new batch should be started as soon as the previous one has been processed</li>
+</ul>
+</li>
+</ul>
+<p>Trade-Offs</p>
+<ul>
+<li>despite high latency, microbathcing offers significant advantages<ul>
+<li>able to adapt at the synchronization barrier boundaries<ul>
+<li>might represent the task of recovering from failure</li>
+<li>give opportunity to add or remove executor nodes, possibility to grow or shrink resources depending upon cluster load</li>
+</ul>
+</li>
+<li>have easier time providing strong consistency<ul>
+<li>batch determinations – beginning and end of batch of data – are deterministic and recorded</li>
+<li>any kind of computation can be redone and produce same results the second time</li>
+</ul>
+</li>
+<li>perform efficient optimizations<ul>
+<li>data available as a set can provide ideas on the way to compute on data</li>
+<li>allows an efficient way of specifying programming both batch processing and streaming data</li>
+<li>even for mere instances, looks like data at rest</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="Streaming-in-Apache-Spark">Streaming in Apache Spark<a class="anchor-link" href="#Streaming-in-Apache-Spark">&#182;</a></h3><ul>
+<li>2 APIs : Spark Streaming and Structured Streaming</li>
+<li>Spark Streaming<ul>
+<li>first streaming engine based on distributed capabilities of Spark</li>
+<li>based on simple but powerful premise<ul>
+<li>apply Spark’s distributed computing capabilities to stream processing by transforming a continuous stream of data into discrete data collections</li>
+<li>micro batching</li>
+</ul>
+</li>
+<li>uses same functional programming paradigm as Spark core but introduces a new abstraction</li>
+<li>discretized streams – exposes a programming model to operate on data in stream</li>
+<li>Spark RDD abstraction permits creation of programs that treat distributed data as a collection<ul>
+<li>allows applying data processing logic in form of transformation of distributed dataset</li>
+</ul>
+</li>
+<li>main task is to take data from stream, package it down into small batches and provide them to Spark for further processing</li>
+<li>DSream abstraction<ul>
+<li>Spark streaming relies on the much more fundamental Spark abstraction of RDD</li>
+<li>introduces a new concept : The Discretized Stream or DStream</li>
+<li>DStream represents a stream in terms of discrete block of data that in turn are represented as RDDs over time</li>
+<li>primarily an execution model that when combined with functional programming model, provides a complete framework to develop and execute streaming applications</li>
+<li>DStreams as a Programming model<ul>
+<li>provides functional programming APIs consistent with RDD APIs and augmented with stream specific functions to deal with<ul>
+<li>aggregations</li>
+<li>time based operations</li>
+<li>stateful computations</li>
+</ul>
+</li>
+<li>in Spark Streaming, we<ul>
+<li>consume a stream by creating Dstream form one of the native implementations or the connectors available<ul>
+<li>from SocketInputStream or Kafka / Twitter / Kinesis connector</li>
+</ul>
+</li>
+<li>implement application logic using functions provided by Dstream API<ul>
+<li>such as counting the elements or grouping the elements</li>
+</ul>
+</li>
+<li>uses transformations – no execution happens unless output operation is not called</li>
+<li>execute output operations to yield out the results</li>
+</ul>
+</li>
+<li>DStream programming model consists of functional composition of transformations over the stream payload, materialized by one or more output operations and recurrently executed by Spark engine</li>
+</ul>
+</li>
+<li>DStreams as an Execution model<ul>
+<li>in programming model, its descried how data is transformed from original form to intended result as a series of lazy evaluations</li>
+<li>Spark streaming engine is responsible for taking that chain of transformations and turning it into an actual execution plan<ul>
+<li>happens by receiving data from input stream(s), collecting that into batches and feeding to spark in timely manner</li>
+</ul>
+</li>
+<li>the measure of time to wait for data in batch interval<ul>
+<li>central unit of time</li>
+<li>short amount of time, ranging from 200ms to 1 min, depending app’s latency requirement</li>
+</ul>
+</li>
+<li>at each batch interval, the data corresponding to the previous interval is sent to Spark for processing while new data is received<ul>
+<li>process is repeated as long as Streaming job is active and healthy</li>
+</ul>
+</li>
+<li>DStream model dictates that a continuous stream of data is discretized into micro batches using a regular time interval</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Structured Streaming<ul>
+<li>stream processor built on top of Spark SQL abstractions</li>
+<li>extends Dataset and DataFrame APIs with streaming capabilities</li>
+<li>adopts schema oriented transformation model – structured part in name</li>
+<li>inherits optimizations implemented in Spark SQL</li>
+<li>introduced in 2017 with Spark 2.2 release</li>
+<li>still evolving fast with each new version of Spark</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="Sketching-Algorithms">Sketching Algorithms<a class="anchor-link" href="#Sketching-Algorithms">&#182;</a></h3><ul>
+<li>Sketching algorithms are used to summarize data streams in a small amount of space</li>
+<li>Sketching algorithms are used to estimate various statistics of the data stream, such as count, sum, average, variance, etc.</li>
+<li>Examples of sketching algorithms include Count-Min Sketch, HyperLogLog, and Bloom Filter</li>
+</ul>
+<h4 id="Bloom-Filter">Bloom Filter<a class="anchor-link" href="#Bloom-Filter">&#182;</a></h4><ul>
+<li>Bloom filter is a probabilistic data structure used to test whether an element is a member of a set Link : <a href="https://llimllib.github.io/bloomfilter-tutorial/">https://llimllib.github.io/bloomfilter-tutorial/</a></li>
+<li>Designed to tell you, rapidly and memory-efficiently, whether an element is present in a set - in other words, it tells you either &quot;possibly in set&quot; or &quot;definitely not in set&quot;. Not - to say &quot;definitely in set&quot;.</li>
+<li>Can't remove elements</li>
+<li>hash functions used in a Bloom filter should be independent and uniformly distributed<ul>
+<li>like murmur, xxhash, fnv, HashMix, etc.</li>
+</ul>
+</li>
+<li>In a Bloom filter with k hashes, m bits in the filter, and n elements that have been inserted:<ul>
+<li>The probability of a false positive is $$p = \left(1 - \left[1 - \frac{1}{m}\right]^{kn}\right)^k \approx (1 - e^{-kn/m})^k$$</li>
+</ul>
+</li>
+<li>So, to choose the size of a bloom filter, we:<ul>
+<li>Choose a ballpark value for $n$</li>
+<li>Choose a value for $m$</li>
+<li>Calculate the optimal value of $k$</li>
+<li>Calculate the error rate for our chosen values of $m$ and $k$, and if it's too high, increase $m$ and recalculate $k$.</li>
+</ul>
+</li>
+<li>Both insertion and lookup are $O(k)$</li>
+</ul>
+<h4 id="HyperLogLog">HyperLogLog<a class="anchor-link" href="#HyperLogLog">&#182;</a></h4><ul>
+<li>HyperLogLog is a probabilistic data structure used to estimate the cardinality of a set</li>
+<li>HyperLogLog is used to estimate the number of distinct elements in a multiset</li>
+<li>HyperLogLog is a memory-efficient way to estimate the number of distinct elements in a set</li>
+<li>HyperLogLog uses a hash function to map elements to a fixed-size array of bits</li>
+<li>HyperLogLog uses a technique called &quot;log-log&quot; counting to estimate the number of distinct elements in a set</li>
+<li>Algorithm:<ul>
+<li>Identify a unique ID for the data value</li>
+<li>Pass the ID through a hash function, it will result into a hashed value</li>
+<li>Hashed value is converted into a binary representation</li>
+<li>Need to determine the place which needs to be updated and with what value.<ul>
+<li>Take the least 6 significant digits of binary number and convert it to a decimal value. That gives you the position where value needs to be updated</li>
+<li>Count the number of leading zeros in the binary number, add one to it and use that number as a value to be stored in the position identified earlier</li>
+</ul>
+</li>
+<li>Repeat the process for all the data values</li>
+<li>To estimate the cardinality, use the harmonic mean of the values stored in the array</li>
+</ul>
+</li>
+</ul>
+<h4 id="Count-Min-Sketch">Count-Min Sketch<a class="anchor-link" href="#Count-Min-Sketch">&#182;</a></h4><ul>
+<li>is a probabilistic data structure used to estimate the frequency of elements in a data stream</li>
+<li>uses a hash function to map elements to a fixed-size array of counters</li>
+<li>create a table:<ul>
+<li>number of rows = number of different values given by hash function</li>
+<li>number of columns = number of hash functions (each representing a different counter)</li>
+</ul>
+</li>
+<li>uses multiple hash functions to map elements to multiple counters<ul>
+<li>loop through each element in the stream, hash it using multiple hash functions, increment the counter at the hashed index</li>
+</ul>
+</li>
+<li>uses the minimum value of the counters to estimate the frequency of that element in the stream</li>
+</ul>
+<h4 id="Reservoir-Sampling">Reservoir Sampling<a class="anchor-link" href="#Reservoir-Sampling">&#182;</a></h4><ul>
+<li>Reservoir sampling is a family of randomized algorithms for randomly choosing a sample of k items from a list S containing n items, where n is either a very large or unknown number</li>
+<li>Algorithm:<ul>
+<li>Initialize an array of size k to store the sample</li>
+<li>Fill the array with the first k elements from the stream</li>
+<li>For each subsequent element in the stream, generate a random number between 0 and the number of elements seen so far</li>
+<li>If the random number is less than k:<ul>
+<li>Insert the element into the sample</li>
+<li>Remove a random element from the sample</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Hot-list-detection">Hot list detection<a class="anchor-link" href="#Hot-list-detection">&#182;</a></h4><ul>
+<li>Hot list detection is a technique used to identify the most frequently occurring items in a data stream</li>
+<li>Algorithm:<ul>
+<li>input $S$ : a sequence of examples</li>
+<li>for each example $x$ in $S$:<ul>
+<li>if $x$ is in the hot list:<ul>
+<li>increment the count of $x$</li>
+</ul>
+</li>
+<li>else<ul>
+<li>if there is a element $y$ in the hot list with count 0:<ul>
+<li>replace $y$ with $x$</li>
+<li>increment the count of $x$</li>
+</ul>
+</li>
+<li>else<ul>
+<li>decrement the count of each element in the hot list</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Decaying-Window">Decaying Window<a class="anchor-link" href="#Decaying-Window">&#182;</a></h4><ul>
+<li>Decaying window is a technique used to give more weight to recent data in a data stream</li>
+<li>Here, the weight of the data decreases exponentially as it gets older</li>
+<li>Idea:<ul>
+<li>Attach weights to elements in sliding window</li>
+<li>Recent elements receive higher weights, with the older elements receive decaying weights</li>
+<li>For a new element:<ul>
+<li>First reduce the weight of all the existing elements by a constant factor</li>
+<li>Assign the new element with a specific weight</li>
+<li>The aggregate sum of the decaying exponential weights can be calculated using the following formula</li>
+</ul>
+</li>
+<li>Let stream is $x_1, x_2, x_3, \ldots$ and taking sum of stream as follows:<ul>
+<li>$S_t = \sum_{i=0}^{t-1} \lambda^{i} \cdot x_i$</li>
+<li>where $\lambda$ is the decay factor</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 
 </div>
 </div>
